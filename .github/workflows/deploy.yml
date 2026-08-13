@@ -5,9 +5,9 @@ on:
     branches: [ "main" ]
 
 jobs:
+  # --- ЭТАП CI: Сборка в облаке GitHub и пуш на склад Docker Hub ---
   build-and-push:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -24,4 +24,23 @@ jobs:
         context: .
         push: true
         tags: lari914/my-app:latest
+
+  # --- ЭТАП CD: Доставка и запуск прямо на твоей Fedora ---
+  deploy:
+    needs: build-and-push # Запускать CD только после того, как CI (сборка) завершится успехом
+    runs-on: self-hosted  # ГЛАВНОЕ: Отправить эти команды на твоего робота-слушателя!
+    steps:
+    - name: Update Docker Container
+      run: |
+        # 1. Скачиваем свежий образ со склада
+        sudo docker pull lari914/my-app:latest
+        
+        # 2. Останавливаем старый контейнер, если он запущен (иначе порт будет занят)
+        sudo docker stop my-web-container || true
+        
+        # 3. Удаляем старый контейнер
+        sudo docker rm my-web-container || true
+        
+        # 4. Запускаем новую версию сайта на порту 8080
+        sudo docker run -d -p 8080:80 --name my-web-container lari914/my-app:latest
 
