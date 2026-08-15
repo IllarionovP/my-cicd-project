@@ -3,34 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Docker - DevOps Base</title>
+    <title>Docker в деталях - DevOps Base</title>
     <style>
-        :root { --bg: #0f172a; --card-bg: #1e293b; --text: #f8fafc; --text-muted: #94a3b8; --primary: #38bdf8; }
-        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); max-width: 800px; margin: 0 auto; padding: 2rem; }
-        a.back { color: var(--primary); text-decoration: none; display: inline-block; margin-bottom: 1.5rem; }
-        code { background: #020617; padding: 0.2rem 0.4rem; border-radius: 4px; color: #f43f5e; font-family: monospace; }
-        pre { background: #020617; padding: 1rem; border-radius: 8px; overflow-x: auto; border: 1px solid #334155; }
+        :root { --bg: #0f172a; --card-bg: #1e293b; --text: #f8fafc; --text-muted: #94a3b8; --primary: #38bdf8; --accent: #f43f5e; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); max-width: 850px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
+        a.back { color: var(--primary); text-decoration: none; display: inline-block; margin-bottom: 1.5rem; font-weight: bold; }
+        code { background: #020617; padding: 0.2rem 0.4rem; border-radius: 4px; color: var(--accent); font-family: monospace; font-size: 0.95rem; }
+        pre { background: #020617; padding: 1.2rem; border-radius: 8px; overflow-x: auto; border: 1px solid #334155; font-family: monospace; }
+        .info-box { background: #0369a133; border-left: 4px solid var(--primary); padding: 1rem; border-radius: 4px; margin: 1.5rem 0; }
+        h2, h3 { color: var(--primary); margin-top: 2rem; }
     </style>
 </head>
 <body>
-    <a href="index.html" class="back">← На главную</a>
-    <h1>📦 Модуль 1: Контейнеризация и Docker</h1>
-    <p>На этом этапе мы упаковали наш сайт в изолированную "коробку" — Docker-образ.</p>
+    <a href="index.html" class="back">← Вернуться на карту знаний</a>
+    <h1>📦 Глубокое погружение: Контейнеризация и Docker</h1>
     
-    <h3>Ключевые инсайты:</h3>
+    <p>Главное прозрение этапа: <strong>Docker-контейнер — это изолированная коробка</strong>. Когда мы работаем с Docker, мы полностью разделяем окружение нашей виртуалки Fedora и окружение самого приложения.</p>
+
+    <h2>1. Анатомия Dockerfile</h2>
+    <p>Наш сценарий сборки состоит всего из двух строк, но они фундаментальны:</p>
+    <pre><code>FROM nginx:alpine
+COPY site/ /usr/share/nginx/html/</code></pre>
+
     <ul>
-        <li>Команда <code>COPY index.html /usr/share/nginx/html/</code> копирует файлы не на Fedora, а во внутреннюю изолированную структуру самого образа.</li>
-        <li>На самом хосте Fedora веб-сервер Nginx не установлен, система остается чистой.</li>
+        <li><strong><code>FROM nginx:alpine</code></strong> — Мы не ставим Nginx на Fedora через <code>dnf install</code>. Мы берем официальный, микроскопический готовый шаблон (образ) Nginx на базе сверхлегкого дистрибутива Alpine Linux. Весь веб-сервер уже настроен внутри этого шаблона разработчиками.</li>
+        <li><strong><code>COPY site/ ...</code></strong> — Эта команда берет файлы из нашей локальной папки на Fedora и копирует их <strong>внутрь изолированной файловой системы будущего контейнера</strong>.</li>
     </ul>
 
-    <h3>Полезные команды:</h3>
-    <pre><code># Ручная сборка образа
+    <div class="info-box">
+        <strong>💡 Ловушка путей:</strong> На самой Fedora пути <code>/usr/share/nginx/html/</code> не существует, и самого Nginx в системе нет. Путь существует исключительно внутри изолированной коробки контейнера, куда Nginx зашит по умолчанию.
+    </div>
+
+    <h2>2. Почему DevOps выбирает Docker?</h2>
+    <ul>
+        <li><strong>Принцип переносимости (Portability):</strong> Наш сайт «впекается» внутрь образа. Теперь этот готовый образ можно запустить одной командой на Ubuntu, CentOS, Windows или в облаке AWS. Сайт везде запустится одинаково, ведь он везет свой Nginx с собой.</li>
+        <li><strong>Чистота хоста:</strong> Сервер Fedora остается абсолютно чистым. Нам не нужно настраивать конфиги веб-сервера в основной системе, следить за конфликтами версий и зависимостей.</li>
+        <li><strong>Изоляция ресурсов:</strong> Если сайт упадет или зависнет, он не утащит за собой всю операционную систему.</li>
+    </ul>
+
+    <h2>3. Шпаргалка по ручному управлению</h2>
+    <pre><code># Сборка локального образа (точка в конце обязательна!)
 sudo docker build -t my-app:v1 .
 
-# Запуск контейнера на порту 8080
+# Запуск контейнера в фоне (-d) с пробросом портов (-p хост:контейнер)
 sudo docker run -d -p 8080:80 --name my-web-container my-app:v1
 
-# Проверка запущенных контейнеров
-sudo docker ps -a</code></pre>
+# Посмотреть только запущенные контейнеры
+sudo docker ps
+
+# Посмотреть вообще все контейнеры (включая остановленные и упавшие)
+sudo docker ps -a
+
+# Остановить работу сайта (плавное выключение контейнера)
+sudo docker stop my-web-container
+
+# Снова включить сайт (быстрый запуск спящего контейнера)
+sudo docker start my-web-container
+
+# Полностью удалить контейнер из системы
+sudo docker rm my-web-container</code></pre>
 </body>
 </html>
+

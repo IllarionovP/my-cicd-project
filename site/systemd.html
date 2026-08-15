@@ -3,34 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Systemd & SELinux - DevOps Base</title>
+    <title>Systemd & SELinux в деталях - DevOps Base</title>
     <style>
-        :root { --bg: #0f172a; --card-bg: #1e293b; --text: #f8fafc; --text-muted: #94a3b8; --primary: #38bdf8; }
-        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); max-width: 800px; margin: 0 auto; padding: 2rem; }
-        a.back { color: var(--primary); text-decoration: none; display: inline-block; margin-bottom: 1.5rem; }
-        code { background: #020617; padding: 0.2rem 0.4rem; border-radius: 4px; color: #f43f5e; font-family: monospace; }
-        pre { background: #020617; padding: 1rem; border-radius: 8px; border: 1px solid #334155; }
+        :root { --bg: #0f172a; --card-bg: #1e293b; --text: #f8fafc; --text-muted: #94a3b8; --primary: #38bdf8; --accent: #f43f5e; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); max-width: 850px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
+        a.back { color: var(--primary); text-decoration: none; display: inline-block; margin-bottom: 1.5rem; font-weight: bold; }
+        code { background: #020617; padding: 0.2rem 0.4rem; border-radius: 4px; color: var(--accent); font-family: monospace; }
+        pre { background: #020617; padding: 1.2rem; border-radius: 8px; border: 1px solid #334155; font-family: monospace; overflow-x: auto; }
+        h2, h3 { color: var(--primary); margin-top: 2rem; }
     </style>
 </head>
 <body>
-    <a href="index.html" class="back">← На главную</a>
-    <h1>⚙️ Модуль 3: Системные службы и Безопасность</h1>
-    <p>Перевод бегунка (Runner) в режим фонового демона под управлением операционной системы Fedora.</p>
+    <a href="index.html" class="back">← Вернуться на карту знаний</a>
+    <h1>⚙️ Модуль 3: Системное администрирование и Безопасность</h1>
     
-    <h3>Системные юниты (System Units)</h3>
-    <p>Наш робот прописался по пути <code>/etc/systemd/system/</code>. Теперь он автоматически запускается при старте виртуалки, даже если никто не залогинен в систему.</p>
+    <p>На этом этапе мы перевели управление нашей инфраструктурой деплоя на уровень операционной системы Linux с помощью менеджера инициализации <strong>Systemd</strong>.</p>
 
-    <h3>Борьба с SELinux</h3>
-    <p>В Fedora встроенная система безопасности блокировала запуск службы из папки <code>/home/sasuke/</code>, так как это нарушает корпоративные стандарты изоляции. Мы решили это через временное отключение <code>setenforce 0</code> и смену контекста безопасности <code>chcon</code>.</p>
+    <h2>1. Архитектура Юнитов: Системный уровень vs Пользовательский</h2>
+    <p>В Linux система <code>systemd</code> жестко разделяет зоны ответственности:</p>
+    <ul>
+        <li><strong>Системные службы (System level):</strong> Файлы конфигурации лежат в <code>/etc/systemd/system/</code>. Они запускаются от имени суперпользователя <code>root</code> в момент включения компьютера, когда на сервер еще никто не вошел. Они работают автономно.</li>
+        <li><strong>Пользовательские службы (User level):</strong> Файлы лежат в <code>~/.config/systemd/user/</code>. Они работают только от твоего имени (юзера) и умирают, как только ты делаешь logout (выходишь из консоли).</li>
+    </ul>
 
-    <h3>Команды управления:</h3>
-    <pre><code># Проверить статус робота-бегунка
+    <h2>2. Столкновение с SELinux в Fedora</h2>
+    <p>Скрипт GitHub Actions прописал нашего робота как <strong>системную службу</strong> в папку <code>/etc/systemd/system/</code>, но при этом заставил её запускать исполняемый файл из твоей <strong>домашней папки</strong> <code>/home/sasuke/</code> от имени пользователя sasuke.</p>
+    <p>Подсистема безопасности <strong>SELinux</strong> заблокировала этот запуск (ошибка <code>status=203/EXEC Permission denied</code>). Для неё запуск общесистемного сервиса из приватной домашней папки обычного юзера выглядит как классическая хакерская активность (подмена бинарника).</p>
+    
+    <h3>Как мы это победили:</h3>
+    <p>Мы использовали команду смены контекста безопасности: <code>sudo chcon -R -t bin_t /home/sasuke/actions-runner/</code>. Мы явно объяснили ядру Linux, что файлам внутри этой папки можно доверять и они имеют право на исполнение системными демонами.</p>
+
+    <h2>3. Настоящий стандарт Linux-администрирования</h2>
+    <p>Инструмент <code>./svc.sh</code> — это просто временная обертка для новичков. Как профессионалы, мы управляем роботом через стандартные утилиты операционной системы:</p>
+    <pre><code># Проверить статус службы деплоя (используем маску *, чтобы не писать длинное имя)
 sudo systemctl status actions.runner.*
 
-# Остановить службу деплоя
+# Остановить автоматический прием обновлений с GitHub
 sudo systemctl stop actions.runner.*
 
-# Запустить службу обратно
-sudo systemctl start actions.runner.*</code></pre>
+# Запустить бегунка обратно на дежурство
+sudo systemctl start actions.runner.*
+
+# Посмотреть живые системные логи работы нашего бегунка
+sudo journalctl -u actions.runner.* -f</code></pre>
 </body>
 </html>
