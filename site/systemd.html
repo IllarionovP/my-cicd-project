@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Systemd & SELinux - DevOps Base</title>
+    <style>
+        :root { --bg: #0f172a; --card-bg: #1e293b; --text: #f8fafc; --text-muted: #94a3b8; --primary: #38bdf8; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); max-width: 800px; margin: 0 auto; padding: 2rem; }
+        a.back { color: var(--primary); text-decoration: none; display: inline-block; margin-bottom: 1.5rem; }
+        code { background: #020617; padding: 0.2rem 0.4rem; border-radius: 4px; color: #f43f5e; font-family: monospace; }
+        pre { background: #020617; padding: 1rem; border-radius: 8px; border: 1px solid #334155; }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back">← На главную</a>
+    <h1>⚙️ Модуль 3: Системные службы и Безопасность</h1>
+    <p>Перевод бегунка (Runner) в режим фонового демона под управлением операционной системы Fedora.</p>
+    
+    <h3>Системные юниты (System Units)</h3>
+    <p>Наш робот прописался по пути <code>/etc/systemd/system/</code>. Теперь он автоматически запускается при старте виртуалки, даже если никто не залогинен в систему.</p>
+
+    <h3>Борьба с SELinux</h3>
+    <p>В Fedora встроенная система безопасности блокировала запуск службы из папки <code>/home/sasuke/</code>, так как это нарушает корпоративные стандарты изоляции. Мы решили это через временное отключение <code>setenforce 0</code> и смену контекста безопасности <code>chcon</code>.</p>
+
+    <h3>Команды управления:</h3>
+    <pre><code># Проверить статус робота-бегунка
+sudo systemctl status actions.runner.*
+
+# Остановить службу деплоя
+sudo systemctl stop actions.runner.*
+
+# Запустить службу обратно
+sudo systemctl start actions.runner.*</code></pre>
+</body>
+</html>

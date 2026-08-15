@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CI/CD - DevOps Base</title>
+    <style>
+        :root { --bg: #0f172a; --card-bg: #1e293b; --text: #f8fafc; --text-muted: #94a3b8; --primary: #38bdf8; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); max-width: 800px; margin: 0 auto; padding: 2rem; }
+        a.back { color: var(--primary); text-decoration: none; display: inline-block; margin-bottom: 1.5rem; }
+        pre { background: #020617; padding: 1rem; border-radius: 8px; border: 1px solid #334155; }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back">← На главную</a>
+    <h1>🔄 Модуль 2: Автоматизация CI/CD</h1>
+    <p>Мы связали репозиторий GitHub, облачную сборку GitHub Actions, склад Docker Hub и наш сервер в единый конвейер.</p>
+    
+    <h3>Архитектурная схема (Pull-модель):</h3>
+    <pre>Код (Fedora) -> Push -> GitHub (Сборка образа) -> Push -> Docker Hub (Склад)
+                               |
+                        Сигнал по рации
+                               v
+                       Self-Hosted Runner -> Pull образа -> Запуск на Fedora</pre>
+
+    <h3>Зачем нужны были Secrets?</h3>
+    <p>Мы скрыли <code>DOCKERHUB_USERNAME</code> и <code>DOCKERHUB_TOKEN</code> в секретах репозитория, чтобы облачный робот мог безопасно авторизоваться на Docker Hub и загрузить наш собранный образ, не раскрывая пароли всему интернету.</p>
+</body>
+</html>

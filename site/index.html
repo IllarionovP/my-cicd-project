@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevOps Knowledge Base</title>
+    <style>
+        :root { --bg: #0f172a; --card-bg: #1e293b; --text: #f8fafc; --text-muted: #94a3b8; --primary: #38bdf8; }
+        body { font-family: system-ui, sans-serif; background: var(--bg); color: var(--text); max-width: 900px; margin: 0 auto; padding: 2rem; }
+        h1 { border-bottom: 2px solid var(--card-bg); padding-bottom: 1rem; color: var(--primary); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+        .card { background: var(--card-bg); padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; transition: 0.2s; text-decoration: none; color: inherit; display: block; }
+        .card:hover { transform: translateY(-4px); border-color: var(--primary); }
+        .card h2 { margin-top: 0; color: var(--primary); font-size: 1.25rem; }
+        .card p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <h1>🚀 DevOps База Знаний: Домашняя Лаборатория</h1>
+    <p style="color: var(--text-muted)">Интерактивная карта изученных технологий и архитектурных решений.</p>
+    
+    <div class="grid">
+        <a href="docker.html" class="card">
+            <h2>📦 Модуль 1: Docker</h2>
+            <p>Контейнеризация, сборка образов, изоляция окружения и разница между путями на хосте и внутри контейнера.</p>
+        </a>
+        <a href="cicd.html" class="card">
+            <h2>🔄 Модуль 2: CI/CD Пайплайн</h2>
+            <p>Сборка в облаке GitHub Actions, хранение артефактов на Docker Hub и Pull-модель доставки через бегунка.</p>
+        </a>
+        <a href="systemd.html" class="card">
+            <h2>⚙️ Модуль 3: Системное администрирование</h2>
+            <p>Управление процессами через Systemd службы, демонизация Runner-а и решение конфликтов с безопасностью SELinux.</p>
+        </a>
+    </div>
+</body>
+</html>
+
+
