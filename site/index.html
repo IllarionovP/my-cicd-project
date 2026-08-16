@@ -36,4 +36,44 @@
 </body>
 </html>
 
+<!-- Форма для отправки отзыва -->
+<div style="margin-top: 50px; padding: 20px; background: #f0f0f0;">
+    <h3>Оставьте свой отзыв (сохранится в БД):</h3>
+    <input type="text" id="msgInput" placeholder="Введите текст...">
+    <button onclick="sendReview()">Отправить</button>
+    
+    <h4>Все отзывы из базы данных:</h4>
+    <div id="reviewsList">Загрузка отзывов...</div>
+</div>
+
+<script>
+    // Поменяйте IP на IP-адрес вашей ВМ Fedora (порт бэкенда 5000)
+    const BACKEND_URL = 'http://localhost:5000/api/messages';
+
+    // Функция отправки отзыва в Бэкенд -> БД
+    async function sendReview() {
+        const text = document.getElementById('msgInput').value;
+        if (!text) return;
+
+        await fetch(BACKEND_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+        document.getElementById('msgInput').value = '';
+        loadReviews(); // Обновляем список на экране
+    }
+
+    // Функция загрузки отзывов из БД -> Бэкенд -> Экран
+    async function loadReviews() {
+        const response = await fetch(BACKEND_URL);
+        const data = await response.json();
+        const listDiv = document.getElementById('reviewsList');
+        listDiv.innerHTML = data.map(m => `<p>— ${m.text}</p>`).join('');
+    }
+
+    // Загружать отзывы сразу при открытии страницы
+    loadReviews();
+</script>
+
 

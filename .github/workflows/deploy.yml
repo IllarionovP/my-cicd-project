@@ -18,29 +18,42 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build and push Docker image
+    # 1. Собираем и пушим ваш старый ФРОНТЕНД (сайт на Nginx)
+    - name: Build and push Frontend Image
       uses: docker/build-push-action@v5
       with:
         context: .
+        file: ./Dockerfile
         push: true
         tags: lari914/my-app:latest
+
+    # 2. Собираем и пушим новый БЭКЕНД (сервер на Node.js)
+    - name: Build and push Backend Image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        file: ./backend/Dockerfile
+        push: true
+        tags: lari914/my-backend:latest
 
   # --- ЭТАП CD: Доставка и запуск прямо на твоей Fedora ---
   deploy:
     needs: build-and-push # Запускать CD только после того, как CI (сборка) завершится успехом
-    runs-on: self-hosted  # ГЛАВНОЕ: Отправить эти команды на твоего робота-слушателя!
+    runs-on: self-hosted  # Команды выполняет ваш агент-runner на Fedora
     steps:
-    - name: Update Docker Container
-      run: |
-        # 1. Скачиваем свежий образ со склада
-        sudo docker pull lari914/my-app:latest
-        
-        # 2. Останавливаем старый контейнер, если он запущен (иначе порт будет занят)
-        sudo docker stop my-web-container || true
-        
-        # 3. Удаляем старый контейнер
-        sudo docker rm my-web-container || true
-        
-        # 4. Запускаем новую версию сайта на порту 8080
-        sudo docker run -d -p 8080:80 --name my-web-container lari914/my-app:latest
+    # Обязательный шаг! Агент должен скачать обновленный файл docker-compose.yml из Git
+    - name: Checkout code on Fedora
+      uses: actions/checkout@v4
 
+    # Управляем всей системой через Docker Compose
+    - name: Update Applications via Docker Compose
+      run: |
+        # 1. Скачиваем свежие образы фронтенда и бэкенда с Docker Hub
+        sudo docker compose pull
+        
+        # 2. Перезапускаем контейнеры. Compose сам создаст сеть, обновит то, что изменилось,
+        # и поднимет базу данных, если её ещё не было на сервере.
+        sudo docker compose up -d --remove-orphans
+        
+        # 3. Чистим старые кэши и остановленные контейнеры, чтобы не забивать диск Fedora
+        sudo docker image prune -f

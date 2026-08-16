@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # 1. Фронтенд (Ваш сайт)
+  frontend:
+    image: lari914/my-app:latest  # Ваш старый образ сайта
+    ports:
+      - "8080:80"                  # Сайт будет доступен на 80 порту ВМ
+    depends_on:
+      - backend
+
+  # 2. Бэкенд (Сервер приложений)
+  backend:
+    image: lari914/my-backend:latest # Имя для нового образа бэкенда
+    ports:
+      - "5000:5000"              # Бэкенд будет доступен на порту 5000 ВМ
+    environment:
+      - DB_HOST=database         # Docker сам свяжет это слово с контейнером БД
+      - DB_USER=postgres
+      - DB_PASSWORD=mysecretpassword
+      - DB_NAME=mydb
+    depends_on:
+      - database
+
+  # 3. Официальная база данных
+  database:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_DB=mydb
+    volumes:
+      - pgdata:/var/lib/postgresql/data # Данные не сотрутся при перезапусках
+
+volumes:
+  pgdata: # Регистрируем постоянную папку для базы на диске Fedora
