@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  # 1. Фронтенд (Ваш сайт)
+  # 1. Фронтенд (Сайт)
   frontend:
-    image: lari914/my-app:latest  # Ваш старый образ сайта
+    image: lari914/my-app:latest  #Старый образ сайта
     ports:
       - "8080:80"                  # Сайт будет доступен на 80 порту ВМ
     depends_on:
