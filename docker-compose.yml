@@ -1,28 +1,33 @@
 version: '3.8'
 
 services:
-  # 1. Фронтенд (Сайт)
+  # 1. Фронтенд (Сайт) — теперь принимает ВСЕ запросы
   frontend:
-    image: lari914/my-app:latest  #Старый образ сайта
+    image: lari914/my-app:latest
     ports:
-      - "8080:80"                  # Сайт будет доступен на 80 порту ВМ
+      - "8080:80"                  # Оставляем вход только через этот порт
+    volumes:
+      # Прокидываем конфиг Nginx. ro значит "read-only" (только для чтения)
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - backend
 
-  # 2. Бэкенд (Сервер приложений)
+  # 2. Бэкенд (Сервер приложений) — теперь скрыт от внешнего мира
   backend:
-    image: lari914/my-backend:latest # Имя для нового образа бэкенда
-    ports:
-      - "5000:5000"              # Бэкенд будет доступен на порту 5000 ВМ
+    image: lari914/my-backend:latest
+    # Строкуports: - "5000:5000" мы удалили.
+    # Вместо неё используем expose. Порт 5000 теперь доступен ТОЛЬКО для Nginx внутри Docker.
+    expose:
+      - "5000"
     environment:
-      - DB_HOST=database         # Docker сам свяжет это слово с контейнером БД
+      - DB_HOST=database
       - DB_USER=postgres
       - DB_PASSWORD=mysecretpassword
       - DB_NAME=mydb
     depends_on:
       - database
 
-  # 3. Официальная база данных
+  # 3. Официальная база данных — без изменений
   database:
     image: postgres:15-alpine
     environment:
@@ -30,7 +35,7 @@ services:
       - POSTGRES_PASSWORD=mysecretpassword
       - POSTGRES_DB=mydb
     volumes:
-      - pgdata:/var/lib/postgresql/data # Данные не сотрутся при перезапусках
+      - pgdata:/var/lib/postgresql/data
 
 volumes:
-  pgdata: # Регистрируем постоянную папку для базы на диске Fedora
+  pgdata:
