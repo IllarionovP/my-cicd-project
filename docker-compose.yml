@@ -1,24 +1,19 @@
 version: '3.8'
 
 services:
-  # 1. Фронтенд (Сайт) — теперь принимает ВСЕ запросы
+  # 1. Фронтенд (Сайт) — как было изначально
   frontend:
     image: lari914/my-app:latest
     ports:
-      - "8080:80"                  # Оставляем вход только через этот порт
-    volumes:
-      # Прокидываем конфиг Nginx. ro значит "read-only" (только для чтения)
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - "8080:80"
     depends_on:
       - backend
 
-  # 2. Бэкенд (Сервер приложений) — теперь скрыт от внешнего мира
+  # 2. Бэкенд (Сервер приложений) — открываем порт 5000 обратно наружу
   backend:
     image: lari914/my-backend:latest
-    # Строкуports: - "5000:5000" мы удалили.
-    # Вместо неё используем expose. Порт 5000 теперь доступен ТОЛЬКО для Nginx внутри Docker.
-    expose:
-      - "5000"
+    ports:
+      - "5000:5000"
     environment:
       - DB_HOST=database
       - DB_USER=postgres
