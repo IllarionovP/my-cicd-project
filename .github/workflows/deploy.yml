@@ -40,6 +40,11 @@ jobs:
   deploy:
     needs: build-and-push # Запускать CD только после того, как CI (сборка) завершится успехом
     runs-on: self-hosted  # Команды выполняет ваш агент-runner на Fedora
+
+    env:
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+
     steps:
     # Обязательный шаг! Агент должен скачать обновленный файл docker-compose.yml из Git
     - name: Checkout code on Fedora
@@ -50,7 +55,6 @@ jobs:
       run: |
         # 1. Скачиваем свежие образы фронтенда и бэкенда с Docker Hub
         sudo docker compose pull
-        
         # 2. Перезапускаем контейнеры. Compose сам создаст сеть, обновит то, что изменилось,
         # и поднимет базу данных, если её ещё не было на сервере.
         sudo docker compose up -d --remove-orphans
